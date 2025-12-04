@@ -80,6 +80,17 @@ class Task {
             this.logger.error(error)
         }
     }
+
+    static deleteTask(taskId) {
+        try {   
+            const dbEntries = this.#getTasks();
+            delete dbEntries[taskId];
+            this.#saveTask(dbEntries);
+            this.logger.success(`Task with ID: ${taskId} as been removed`);
+        } catch (error) {
+            this.logger.error(`An error occured while trying to delete the task with ID: ${taskId}. Error: ${error}`)
+        }
+    }
 }
 
 module.exports = Task;
