@@ -84,6 +84,12 @@ class Task {
     static deleteTask(taskId) {
         try {   
             const dbEntries = this.#getTasks();
+            const match = dbEntries[taskId]
+
+            if (!match) {
+                throw new Error(`Cannot delete non existent task with ID: ${taskId}`)
+            }
+
             delete dbEntries[taskId];
             this.#saveTask(dbEntries);
             this.logger.success(`Task with ID: ${taskId} as been removed`);
