@@ -80,6 +80,23 @@ class Task {
             this.logger.error(error)
         }
     }
+
+    static deleteTask(taskId) {
+        try {   
+            const dbEntries = this.#getTasks();
+            const match = dbEntries[taskId]
+
+            if (!match) {
+                throw new Error(`Cannot delete non existent task with ID: ${taskId}`)
+            }
+
+            delete dbEntries[taskId];
+            this.#saveTask(dbEntries);
+            this.logger.success(`Task with ID: ${taskId} as been removed`);
+        } catch (error) {
+            this.logger.error(`An error occured while trying to delete the task with ID: ${taskId}. Error: ${error}`)
+        }
+    }
 }
 
 module.exports = Task;

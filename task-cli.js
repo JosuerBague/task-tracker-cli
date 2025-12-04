@@ -36,6 +36,10 @@ function dispatcher(action, args) {
             Task.updateTask(args[0], args.slice(1).join(' '));
             break;
         }
+        case CLI_ACTIONS.DELETE: {
+            Task.deleteTask(args[0])
+            break;
+        }
         default: {
             printUnknownCommand();
             break;
