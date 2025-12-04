@@ -3,7 +3,8 @@ const CLI_ACTIONS = {
     UPDATE: 'update',
     DELETE: 'delete',
     PROGRESS: 'mark-in-progress',
-    DONE: 'mark-done'
+    DONE: 'mark-done',
+    LIST: 'list'
 }
 
 module.exports = CLI_ACTIONS;

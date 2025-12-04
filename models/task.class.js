@@ -43,6 +43,22 @@ class Task {
         return { match, dbEntries }
     }
 
+    static #findAllByStatus(status) {
+        const dbEntries= Object.values(this.#getTasks());
+        const matches = dbEntries.filter(({ status: s }) => s === status);
+
+        if (!status) {
+            return dbEntries;
+        }
+
+        const taskStates = Object.values(TASK_STATE)
+        if (!taskStates.includes(status)) {
+            throw new Error(`Unknown modifier passed for list command. Valid valuse: ${taskStates.join(', ')}`)
+        }
+
+        return matches;
+    }
+
     static #saveTask(newTasks) {
         try {
             fs.writeFileSync(this.dbPath, JSON.stringify(newTasks, null, 2));
@@ -106,6 +122,18 @@ class Task {
         } catch (error) {
             this.logger.error(`An error occured while updating the task with ID: ${taskId}. ${error}`)
         }   
+    }
+
+    static listTasks(key) {
+        try {
+            const items = this.#findAllByStatus(key);
+            let message = '\n\nID\t\tSTATUS\t\tTASK\n';
+            items.map((item) => message = message + `\n#${item.id}\t\t${item.status}\t\t${item.description}`)
+            message = message + `\n\nTOTAL - ${items.length}\n\n`;
+            this.logger.info(message)
+        } catch (error) {
+            this.logger.error(`An error occured: ${error}`);
+        }
     }
 }
 

@@ -2,11 +2,6 @@ const CLI_ACTIONS = require('./constants/cli-actions.constant.js')
 const TASK_STATE = require('./constants/tak-state.constant.js')
 const readline = require('readline');
 const Task = require('./models/task.class.js')
-const path = require('path');
-const fs = require('fs');
-const { stringify } = require('querystring');
-
-const taskDbPath = path.join(__dirname, 'task-db.json');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -47,6 +42,10 @@ function dispatcher(action, args) {
         }
         case CLI_ACTIONS.DONE: {
             Task.updateTaskStatus(TASK_STATE.DONE, args[0])
+            break;
+        }
+        case CLI_ACTIONS.LIST: {
+            Task.listTasks(args.join(' '));
             break;
         }
         default: {
