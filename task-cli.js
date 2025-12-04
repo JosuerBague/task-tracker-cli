@@ -1,4 +1,5 @@
 const CLI_ACTIONS = require('./constants/cli-actions.constant.js')
+const TASK_STATE = require('./constants/tak-state.constant.js')
 const readline = require('readline');
 const Task = require('./models/task.class.js')
 const path = require('path');
@@ -38,6 +39,14 @@ function dispatcher(action, args) {
         }
         case CLI_ACTIONS.DELETE: {
             Task.deleteTask(args[0])
+            break;
+        }
+        case CLI_ACTIONS.PROGRESS: {
+            Task.updateTaskStatus(TASK_STATE.IN_PROGRESS, args[0])
+            break;
+        }
+        case CLI_ACTIONS.DONE: {
+            Task.updateTaskStatus(TASK_STATE.DONE, args[0])
             break;
         }
         default: {

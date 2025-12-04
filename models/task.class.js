@@ -32,6 +32,17 @@ class Task {
         }
     }
 
+    static #findTaskWithEntries(taskId) {
+        const dbEntries = this.#getTasks();
+        const match = dbEntries[taskId];
+
+        if (!match) {
+            throw new Error(`Unable to find task with ID: ${taskId}`);
+        }
+
+        return { match, dbEntries }
+    }
+
     static #saveTask(newTasks) {
         try {
             fs.writeFileSync(this.dbPath, JSON.stringify(newTasks, null, 2));
@@ -60,19 +71,13 @@ class Task {
             this.#saveTask(dbEntries);
             this.logger.success(`Task added successfully (ID: ${nextId})`);
         } catch (error) {
-            this.logger.error(`An error ocurred while trying to add the task: ${task}.\nError: ${error}`);
+            this.logger.error(`An error ocurred while trying to add the task: ${task}. ${error}`);
         }
     }
 
     static updateTask(taskId, task) {
         try {
-            const dbEntries = this.#getTasks();
-            const match = dbEntries[taskId];
-
-            if (!match) {
-                throw new Error(`Unable to find task with ID: ${taskId}`);
-            }
-
+            const {dbEntries} = this.#findTaskWithEntries(taskId);
             dbEntries[taskId].description = task;
             this.#saveTask(dbEntries);
             this.logger.success(`Task with ID: ${taskId} has been updated to "${task}"`)
@@ -83,19 +88,24 @@ class Task {
 
     static deleteTask(taskId) {
         try {   
-            const dbEntries = this.#getTasks();
-            const match = dbEntries[taskId]
-
-            if (!match) {
-                throw new Error(`Cannot delete non existent task with ID: ${taskId}`)
-            }
-
+            const { dbEntries } = this.#findTaskWithEntries(taskId)
             delete dbEntries[taskId];
             this.#saveTask(dbEntries);
             this.logger.success(`Task with ID: ${taskId} as been removed`);
         } catch (error) {
-            this.logger.error(`An error occured while trying to delete the task with ID: ${taskId}. Error: ${error}`)
+            this.logger.error(`An error occured while trying to delete the task with ID: ${taskId}. ${error}`)
         }
+    }
+
+    static updateTaskStatus(newStatus, taskId) {
+        try {
+            const { dbEntries } = this.#findTaskWithEntries(taskId)
+            dbEntries[taskId].status = newStatus; 
+            this.#saveTask(dbEntries);
+            this.logger.success(`Task status set to ${newStatus} for task with ID: ${taskId}`)
+        } catch (error) {
+            this.logger.error(`An error occured while updating the task with ID: ${taskId}. ${error}`)
+        }   
     }
 }
 
