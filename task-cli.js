@@ -29,7 +29,11 @@ function printUnknownCommand() {
 function dispatcher(action, args) {
     switch(action) {
         case CLI_ACTIONS.ADD: {
-            Task.addTask(args)
+            Task.addTask(args.join(' '))
+            break;
+        }
+        case CLI_ACTIONS.UPDATE: {
+            Task.updateTask(args[0], args.slice(1).join(' '));
             break;
         }
         default: {
