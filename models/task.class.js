@@ -6,10 +6,6 @@ class Task {
     static logger = Logger;
     static db = new TaskDatabase();
     
-    static ensureDbExists() {
-        this.db.ensureDbExists()
-    }
-
     static #getTasks() {
         try {
             return this.db.getEntries()
@@ -103,7 +99,7 @@ class Task {
         try {
             const items = this.#findAllByStatus(key);
             let message = '\n\nID\t\tSTATUS\t\tTASK\n';
-            items.map((item) => message = message + `\n#${item.id}\t\t${item.status}\t\t${item.description}`)
+            items.forEach((item) => message = message + `\n#${item.id}\t\t${item.status}\t\t${item.description}`)
             message = message + `\n\nTOTAL - ${items.length}\n\n`;
             this.logger.info(message)
         } catch (error) {

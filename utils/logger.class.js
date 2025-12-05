@@ -14,6 +14,10 @@ class Logger {
     static error(message) {
         console.log(`[ERROR] - ${message}`)
     }
+
+    static display(message) {
+        console.log(message)
+    }
 }
 
 module.exports = Logger;
