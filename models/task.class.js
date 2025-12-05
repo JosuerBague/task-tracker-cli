@@ -1,31 +1,14 @@
 const TASK_STATE = require('../constants/tak-state.constant.js');
 const Logger = require('../utils/logger.class.js');
-const fs = require('fs');
-const path = require('path');
-const taskDbPath = path.resolve(__dirname, '..', 'task-db.json');
+const TaskDatabase = require('./task-db.class.js');
 
 class Task {
     static logger = Logger;
-    static dbPath = taskDbPath;
+    static db = new TaskDatabase();
     
-    static ensureDbExists() {
-        fs.access(this.dbPath, fs.constants.F_OK, (err) => {
-                if (err) {
-                    try {
-                        this.logger.warn(`"task-db.json" file was not found. Creating new task-db.json file`)
-                        this.#saveTask({})
-                        this.logger.success(`Database successfully created`)
-                    } catch (error) {
-                        this.logger.error(`An error occurred while trying to create the database file: ${error}`)
-                    }
-                } 
-            })
-    }
-
     static #getTasks() {
         try {
-            const dbEntries = JSON.parse(fs.readFileSync(this.dbPath));
-            return dbEntries;
+            return this.db.getEntries()
         } catch (error) {
             this.logger.error('An error occurred while trying to read existing tasks')
             throw error;
@@ -33,22 +16,26 @@ class Task {
     }
 
     static #findTaskWithEntries(taskId) {
-        const dbEntries = this.#getTasks();
-        const match = dbEntries[taskId];
+        const match = this.db.findByIdWithEntries(taskId)
 
         if (!match) {
             throw new Error(`Unable to find task with ID: ${taskId}`);
         }
 
-        return { match, dbEntries }
+        return match;
     }
 
-    static #saveTask(newTasks) {
-        try {
-            fs.writeFileSync(this.dbPath, JSON.stringify(newTasks, null, 2));
-        } catch (error) {
-            throw error;
+    static #findAllByStatus(status) {
+        if (!status) {
+            return Object.values(this.#getTasks());
         }
+
+        const taskStates = Object.values(TASK_STATE)
+        if (!taskStates.includes(status)) {
+            throw new Error(`Unknown modifier passed for list command. Valid values: ${taskStates.join(', ')}`)
+        }
+
+        return this.db.findAllByField('status', status);
     }
 
     static addTask(task) {
@@ -68,7 +55,7 @@ class Task {
 
             dbEntries[nextId] = newTask;
 
-            this.#saveTask(dbEntries);
+            this.db.save(dbEntries);
             this.logger.success(`Task added successfully (ID: ${nextId})`);
         } catch (error) {
             this.logger.error(`An error ocurred while trying to add the task: ${task}. ${error}`);
@@ -79,7 +66,7 @@ class Task {
         try {
             const {dbEntries} = this.#findTaskWithEntries(taskId);
             dbEntries[taskId].description = task;
-            this.#saveTask(dbEntries);
+            this.db.save(dbEntries);
             this.logger.success(`Task with ID: ${taskId} has been updated to "${task}"`)
         } catch (error) {
             this.logger.error(error)
@@ -90,7 +77,7 @@ class Task {
         try {   
             const { dbEntries } = this.#findTaskWithEntries(taskId)
             delete dbEntries[taskId];
-            this.#saveTask(dbEntries);
+            this.db.save(dbEntries);
             this.logger.success(`Task with ID: ${taskId} as been removed`);
         } catch (error) {
             this.logger.error(`An error occured while trying to delete the task with ID: ${taskId}. ${error}`)
@@ -101,11 +88,23 @@ class Task {
         try {
             const { dbEntries } = this.#findTaskWithEntries(taskId)
             dbEntries[taskId].status = newStatus; 
-            this.#saveTask(dbEntries);
+            this.db.save(dbEntries);
             this.logger.success(`Task status set to ${newStatus} for task with ID: ${taskId}`)
         } catch (error) {
             this.logger.error(`An error occured while updating the task with ID: ${taskId}. ${error}`)
         }   
+    }
+
+    static listTasks(key) {
+        try {
+            const items = this.#findAllByStatus(key);
+            let message = '\n\nID\t\tSTATUS\t\tTASK\n';
+            items.forEach((item) => message = message + `\n#${item.id}\t\t${item.status}\t\t${item.description}`)
+            message = message + `\n\nTOTAL - ${items.length}\n\n`;
+            this.logger.info(message)
+        } catch (error) {
+            this.logger.error(`An error occured: ${error}`);
+        }
     }
 }
 
